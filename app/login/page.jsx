@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AppContext } from '@/context/AppContext';
 import { login as loginUser } from '@/lib/services/userService';
 import CSRFToken from '@/lib/services/CSRFToken';
 
-const AuthPage = () => {
+const LoginForm = () => {
     const { onAuthSuccess, showToast } = React.useContext(AppContext);
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -23,6 +23,7 @@ const AuthPage = () => {
             const user = await loginUser(email, password);
             onAuthSuccess(user.data, `/${from || ''}`);
         } catch (err) {
+            console.log('Login error:', err);
             showToast(err.message || 'An error occurred.', 'error');
         } finally {
             setIsLoading(false);
@@ -72,6 +73,14 @@ const AuthPage = () => {
                 </div>
             </div>
         </div>
+    );
+};
+
+const AuthPage = () => {
+    return (
+        <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
+            <LoginForm />
+        </Suspense>
     );
 };
 
