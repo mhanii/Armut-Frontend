@@ -25,7 +25,13 @@ const StoreProductsPage = () => {
     return (
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
             <div className="relative h-32 sm:h-64 rounded-lg overflow-hidden mb-6 sm:mb-8">
-                <Image src={store.imageUrl} alt={store.name} fill style={{objectFit: 'cover'}} />
+                <Image 
+                    src={store.imageUrl} 
+                    alt={store.name} 
+                    fill 
+                    style={{objectFit: 'cover'}} 
+                    unoptimized={store.imageUrl && (store.imageUrl.includes('armut-backend.onrender.com') || store.imageUrl.includes('localhost:8000'))}
+                />
                 <div className="absolute inset-0 bg-black/50 flex items-end p-4 sm:p-8">
                     <div>
                         <h2 className="text-xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">{store.name}</h2>

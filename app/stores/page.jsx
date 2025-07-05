@@ -26,6 +26,7 @@ const StoresPage = () => {
                                 fill
                                 style={{objectFit:"cover"}}
                                 className="group-hover:scale-105 transition-transform"
+                                unoptimized={st.imageUrl && (st.imageUrl.includes('armut-backend.onrender.com') || st.imageUrl.includes('localhost:8000'))}
                             />
                         </div>
                         <div className="p-3 sm:p-4">

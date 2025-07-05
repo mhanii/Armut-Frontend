@@ -15,6 +15,10 @@ const nextConfig = {
                 hostname: 'via.placeholder.com',
             },
             {
+                protocol: 'https',
+                hostname: 'armut-backend.onrender.com',
+            },
+            {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: '8000',
