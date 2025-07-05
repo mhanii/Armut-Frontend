@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f7f4;
+    color: #333;
+}
+.hero-slider {
+    position: relative;
+    height: 60vh;
+    overflow: hidden;
+}
+@media (max-width: 640px) {
+  .hero-slider {
+    height: 32vh;
+  }
+}
+.slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 1s ease-in-out;
+}
+.transition-all-fast {
+    transition: all 0.2s ease-in-out;
+}
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.5); display: flex;
+    align-items: center; justify-content: center; z-index: 50;
+    opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
+}
+.modal-overlay.show { opacity: 1; visibility: visible; }
+.modal-content {
+    background-color: white; padding: 2rem; border-radius: 0.5rem;
+    max-width: 500px; width: 90%; transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+@media (max-width: 640px) {
+  .modal-content {
+    padding: 1rem;
+    max-width: 95vw;
+  }
+}
+.modal-overlay.show .modal-content { transform: scale(1); }
+
+@keyframes slide-glow {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+.animate-slide-glow {
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, #f0f2f5 0%, #e4e6eb 40%, #ffffff 50%, #f0f2f5 100%);
+  animation: slide-glow 1.2s linear infinite;
+}
+
+@keyframes slide-glow-soft {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.animate-slide-glow-soft {
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg, 
+    #f0f2f5 20%, 
+    #d64d4d 50%, 
+    #f0f2f5 80%
+  );
+  animation: slide-glow-soft 1.8s ease-in-out infinite;
+}
+
+@keyframes glow-opacity {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.animate-glow-opacity {
+  animation: glow-opacity 1.2s ease-in-out infinite;
+} 
