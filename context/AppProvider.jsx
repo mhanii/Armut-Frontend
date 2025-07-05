@@ -16,10 +16,18 @@ export const AppProvider = ({ children }) => {
     const [user, setUser] = useLocalStorageState('user', null);
     const [modal, setModal] = React.useState({ show: false, order: null });
     const [authenticated, setAuthenticated] = useLocalStorageState('authenticated', false);
+    const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
+
+    // Ensure component is mounted before accessing localStorage
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // On mount, if authenticated=true, load user from localStorage
     React.useEffect(() => {
+        if (!mounted) return;
+        
         const auth = window.localStorage.getItem('authenticated');
         if (auth === 'true') {
             const userStr = window.localStorage.getItem('user');
@@ -30,7 +38,7 @@ export const AppProvider = ({ children }) => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [mounted]);
 
     // Load cart from backend if user changes
     React.useEffect(() => {
@@ -82,8 +90,10 @@ export const AppProvider = ({ children }) => {
     const handleAuthSuccess = (userData, from) => {
         setUser(userData);
         setAuthenticated(true);
-        window.localStorage.setItem('authenticated', 'true');
-        window.localStorage.setItem('user', JSON.stringify(userData));
+        if (mounted) {
+            window.localStorage.setItem('authenticated', 'true');
+            window.localStorage.setItem('user', JSON.stringify(userData));
+        }
         showToast(`Welcome, ${userData.first_name || userData.last_name || 'User'}!`, 'success');
         router.push(from || '/');
     };
@@ -100,8 +110,10 @@ export const AppProvider = ({ children }) => {
         }
         setUser(null);
         setAuthenticated(false);
-        window.localStorage.setItem('authenticated', 'false');
-        window.localStorage.removeItem('user');
+        if (mounted) {
+            window.localStorage.setItem('authenticated', 'false');
+            window.localStorage.removeItem('user');
+        }
         setCartItems([]);
         showToast("Logged out.", 'note');
         router.push('/');

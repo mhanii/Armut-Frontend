@@ -6,13 +6,20 @@ import { AppContext } from '@/context/AppContext';
 import { CartIcon, UserIcon } from '@/components/ui/Icons';
 import { useRouter } from 'next/navigation';
 import * as cartService from '@/lib/services/cartService';
+import ClientOnly from '@/components/ui/ClientOnly';
 
 const Header = () => {
     const { cartItemCount, user, isVendor, isCustomer, onLogout, setCartItems } = useContext(AppContext);
     const [userLoading, setUserLoading] = React.useState(true);
     const [cartLoading, setCartLoading] = React.useState(true);
+    const [mounted, setMounted] = React.useState(false);
     const router = useRouter();
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+    // Ensure component is mounted before rendering dynamic content
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Load cart on page reload
     useEffect(() => {
@@ -31,6 +38,8 @@ const Header = () => {
     }, [user, setCartItems]);
 
     React.useEffect(() => {
+        if (!mounted) return;
+        
         // Wait for user state to be determined (simulate async check)
         // If user is null and localStorage has 'authenticated' true, wait for effect in AppProvider
         // Otherwise, set loading to false immediately
@@ -47,11 +56,46 @@ const Header = () => {
         } else {
             setUserLoading(false);
         }
-    }, [user]);
+    }, [user, mounted]);
 
     const handleNavigate = (path) => {
         router.push(path);
     };
+
+    // Show loading skeleton until mounted to prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b">
+                <div className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+                    <Link href="/" className="text-xl sm:text-2xl font-bold">
+                        Armut
+                    </Link>
+                    <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-base lg:text-lg">
+                        {[...Array(3)].map((_, i) => (
+                            <span key={i} className="w-20 h-6 rounded bg-gray-200 animate-glow-opacity" />
+                        ))}
+                    </nav>
+                    <div className="flex items-center space-x-4 sm:space-x-6">
+                        <div className="flex items-center">
+                            <UserIcon c="w-6 h-6" />
+                            <span className="ml-2 hidden sm:inline w-20 h-8 rounded bg-gray-200 animate-glow-opacity" />
+                        </div>
+                        <div className="relative">
+                            <CartIcon c="w-6 h-6" />
+                            <span className="absolute -top-2 -right-2 bg-gray-300 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                            </span>
+                        </div>
+                        <button className="md:hidden flex flex-col justify-center items-center w-10 h-10 bg-gray-100 rounded-lg">
+                            <span className="block w-5 h-0.5 bg-gray-800 rounded mb-1" />
+                            <span className="block w-5 h-0.5 bg-gray-800 rounded mb-1" />
+                            <span className="block w-5 h-0.5 bg-gray-800 rounded" />
+                        </button>
+                    </div>
+                </div>
+            </header>
+        );
+    }
 
     return (
         <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b">
