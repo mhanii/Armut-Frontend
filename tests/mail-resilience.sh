@@ -13,7 +13,7 @@ cd "$BACKEND"
 try() {
   local label="$1"; shift
   local P=$(ss -lntp 2>/dev/null | grep ":$PORT_T" | grep -o 'pid=[0-9]*' | cut -d= -f2 | head -1); [ -n "$P" ] && kill $P; sleep 0.8
-  (env DATA_DIR="$DATA" UPLOAD_DIR="$DATA/uploads" PORT="$PORT_T" "$@" node src/server.js >/dev/null 2>&1 &)
+  (env DATA_DIR="$DATA" UPLOAD_DIR="$DATA/uploads" PORT="$PORT_T" EMAIL_VERIFICATION=off "$@" node src/server.js >/dev/null 2>&1 &)
   # Wait properly: without a delay these 40 attempts burn through in
   # milliseconds and the suite starts testing before the API is listening.
   for i in $(seq 1 60); do curl -sf http://localhost:$PORT_T/health >/dev/null 2>&1 && break; sleep 0.25; done

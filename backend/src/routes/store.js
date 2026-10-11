@@ -82,19 +82,105 @@ router.post('/products/:id/reviews', requireCustomer, h((req, res) => {
   res.status(201).json({ ...agg, reviews: productReviews(productId) });
 }));
 
+// ---- email verification -----------------------------------------------------
+// A new account must prove it owns its address with a 6-digit code before it
+// gets a session. EMAIL_VERIFICATION=on|off|auto (default): auto means "on when
+// outgoing mail is configured", since a code nobody can receive would lock
+// every new customer out.
+const VERIFY_MODE = String(process.env.EMAIL_VERIFICATION || 'auto').toLowerCase();
+const verificationOn = () => VERIFY_MODE === 'on' || (VERIFY_MODE !== 'off' && mailer.configured);
+const CODE_MINUTES = 15;
+const CODE_RESEND_SECONDS = Number(process.env.VERIFY_RESEND_SECONDS ?? 30);
+const CODE_MAX_ATTEMPTS = 5;
+const codeHash = (userId, code) => crypto.createHash('sha256').update(`${userId}:${code}`).digest('hex');
+const emailOf = (v) => String(v || '').trim().toLowerCase();
+
+// Issue (or re-issue) a code. Returns false when one was sent too recently.
+function issueCode(user) {
+  const now = Date.now();
+  const prior = db.prepare(`SELECT sent_at FROM email_verifications WHERE user_id = ?`).get(user.id);
+  if (prior && now - prior.sent_at < CODE_RESEND_SECONDS * 1000) return false;
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  db.prepare(`INSERT OR REPLACE INTO email_verifications (user_id, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)`)
+    .run(user.id, codeHash(user.id, code), now + CODE_MINUTES * 60 * 1000, now);
+  // No outgoing mail in development: say the code where the developer looks.
+  if (!mailer.configured && process.env.NODE_ENV !== 'production') console.log(`[verify] code for ${user.email}: ${code}`);
+  mailer.verificationCode({ name: user.name.split(' ')[0], email: user.email, code, minutes: CODE_MINUTES });
+  return true;
+}
+
+const PENDING = (email) => ({ verify: true, email, message: `We sent a 6-digit code to ${email}.` });
+
 // POST /auth/signup
 router.post('/auth/signup', authLimit, h((req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !name.trim()) throw new ApiError('Enter your full name.', 422, 'validation');
   assertCreds(email, password);
-  const exists = db.prepare(`SELECT id FROM users WHERE email = ?`).get(email.toLowerCase());
-  if (exists) throw new ApiError('An account with that email already exists.', 409, 'conflict');
+  const addr = emailOf(email);
+  const existing = db.prepare(`SELECT * FROM users WHERE email = ?`).get(addr);
   const first = name.trim().split(' ')[0];
-  const info = db.prepare(`INSERT INTO users (name, email, password_hash, status, created_at) VALUES (?, ?, ?, 'Active', ?)`)
-    .run(name.trim(), email.toLowerCase(), hash(password), today());
-  const user = { name: first, email: email.toLowerCase() };
-  mailer.welcome({ name: first, email: user.email });
-  res.json({ token: sign({ id: info.lastInsertRowid, role: 'store', ...user }), user });
+
+  if (!verificationOn()) {
+    if (existing) throw new ApiError('An account with that email already exists.', 409, 'conflict');
+    const info = db.prepare(`INSERT INTO users (name, email, password_hash, status, created_at, email_verified_at) VALUES (?, ?, ?, 'Active', ?, ?)`)
+      .run(name.trim(), addr, hash(password), today(), today());
+    const user = { name: first, email: addr };
+    mailer.welcome(user);
+    return res.json({ token: sign({ id: info.lastInsertRowid, role: 'store', ...user }), user });
+  }
+
+  if (existing && existing.email_verified_at) throw new ApiError('An account with that email already exists.', 409, 'conflict');
+  // An address that never confirmed has no sessions and no orders, so a fresh
+  // sign-up simply replaces it — the real owner is never blocked by someone
+  // who typed their address first.
+  let user;
+  if (existing) {
+    db.prepare(`UPDATE users SET name = ?, password_hash = ? WHERE id = ?`).run(name.trim(), hash(password), existing.id);
+    user = { id: existing.id, name: name.trim(), email: addr };
+  } else {
+    const info = db.prepare(`INSERT INTO users (name, email, password_hash, status, created_at) VALUES (?, ?, ?, 'Active', ?)`)
+      .run(name.trim(), addr, hash(password), today());
+    user = { id: info.lastInsertRowid, name: name.trim(), email: addr };
+  }
+  issueCode(user);
+  res.status(202).json(PENDING(addr));
+}));
+
+// POST /auth/verify  { email, code }  → signs the customer in
+router.post('/auth/verify', authLimit, h((req, res) => {
+  const addr = emailOf(req.body && req.body.email);
+  const code = String((req.body && req.body.code) || '').replace(/\s+/g, '');
+  if (!/^\d{6}$/.test(code)) throw new ApiError('Enter the 6-digit code from the email.', 422, 'validation');
+  const bad = () => new ApiError('That code is wrong or has expired.', 400, 'invalid_code');
+  const row = db.prepare(`SELECT * FROM users WHERE email = ?`).get(addr);
+  const v = row && !row.email_verified_at && db.prepare(`SELECT * FROM email_verifications WHERE user_id = ?`).get(row.id);
+  if (!v) throw bad();
+  if (v.expires_at < Date.now() || v.attempts >= CODE_MAX_ATTEMPTS) {
+    db.prepare(`DELETE FROM email_verifications WHERE user_id = ?`).run(row.id);
+    throw new ApiError('That code has expired. Request a new one.', 400, 'code_expired');
+  }
+  const a = Buffer.from(codeHash(row.id, code)), b = Buffer.from(v.code_hash);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    db.prepare(`UPDATE email_verifications SET attempts = attempts + 1 WHERE user_id = ?`).run(row.id);
+    throw bad();
+  }
+  db.transaction(() => {
+    db.prepare(`UPDATE users SET email_verified_at = ? WHERE id = ?`).run(new Date().toISOString(), row.id);
+    db.prepare(`DELETE FROM email_verifications WHERE user_id = ?`).run(row.id);
+  })();
+  const user = { name: row.name.split(' ')[0], email: row.email };
+  mailer.welcome(user);
+  res.json({ token: sign({ id: row.id, role: 'store', ...user }), user });
+}));
+
+// POST /auth/resend  { email }
+// Same answer whether or not the address is waiting for a code.
+router.post('/auth/resend', authLimit, h((req, res) => {
+  const addr = emailOf(req.body && req.body.email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) throw new ApiError('Enter a valid email address.', 422, 'validation');
+  const row = verificationOn() && db.prepare(`SELECT * FROM users WHERE email = ?`).get(addr);
+  if (row && !row.email_verified_at) issueCode(row);
+  res.json({ ok: true, message: 'If that address is waiting for a code, a new one is on its way.' });
 }));
 
 // POST /auth/login
@@ -103,8 +189,25 @@ router.post('/auth/login', authLimit, h((req, res) => {
   assertCreds(email, password);
   const row = db.prepare(`SELECT * FROM users WHERE email = ?`).get(String(email).toLowerCase());
   if (!row || !compare(password, row.password_hash)) throw new ApiError('Incorrect email or password.', 401, 'unauthorized');
+  // Correct password but the address was never confirmed: send a fresh code
+  // and let the page ask for it.
+  if (!row.email_verified_at && verificationOn()) {
+    issueCode(row);
+    throw new ApiError('Confirm your email to sign in — we sent you a code.', 403, 'email_unverified');
+  }
   const user = { name: row.name.split(' ')[0], email: row.email };
   res.json({ token: sign({ id: row.id, role: 'store', ...user }), user });
+}));
+
+// PUT /auth/password  { current, password } — a signed-in customer changes it.
+router.put('/auth/password', requireCustomer, authLimit, h((req, res) => {
+  const { current, password } = req.body || {};
+  if (!password || String(password).length < 6) throw new ApiError('Password must be at least 6 characters.', 422, 'validation');
+  const row = db.prepare(`SELECT * FROM users WHERE id = ?`).get(req.auth.id);
+  if (!row || !compare(current, row.password_hash)) throw new ApiError('Your current password is not right.', 403, 'wrong_password');
+  db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(hash(password), row.id);
+  mailer.passwordChanged({ name: row.name.split(' ')[0], email: row.email });
+  res.json({ ok: true });
 }));
 
 // ---- password reset ---------------------------------------------------------
@@ -152,7 +255,8 @@ router.post('/auth/reset', authLimit, h((req, res) => {
   const row = db.prepare(`SELECT * FROM users WHERE id = ?`).get(reset.user_id);
   if (!row) throw invalid();
   db.transaction(() => {
-    db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(hash(password), row.id);
+    db.prepare(`UPDATE users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?`).run(hash(password), new Date().toISOString(), row.id);
+    db.prepare(`DELETE FROM email_verifications WHERE user_id = ?`).run(row.id);
     db.prepare(`DELETE FROM password_resets WHERE user_id = ?`).run(row.id);
   })();
   const user = { name: row.name.split(' ')[0], email: row.email };

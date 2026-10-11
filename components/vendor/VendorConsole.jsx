@@ -11,6 +11,7 @@ import { VendorProducts } from './VendorProducts.jsx';
 import { VendorProductForm } from './VendorProductForm.jsx';
 import { VendorOrders } from './VendorOrders.jsx';
 import { VendorStore } from './VendorStore.jsx';
+import { ChangePassword } from '@/components/ui/ChangePassword.jsx';
 
 export function VendorConsole() {
   const [mounted, setMounted] = React.useState(false);
@@ -76,7 +77,14 @@ export function VendorConsole() {
   else if (tab === 'products') view = <VendorProducts products={products} onAdd={() => { setEditing(null); setTab('product-form'); }} onEdit={p => { setEditing(p); setTab('product-form'); }} onDelete={deleteProduct} />;
   else if (tab === 'product-form') view = <VendorProductForm product={editing} categories={categories} onSave={saveProduct} onCancel={() => { setTab('products'); setEditing(null); }} />;
   else if (tab === 'orders') view = <VendorOrders orders={orders} onAdvance={advanceOrder} initialFilter={orderFilter} key={orderFilter} />;
-  else if (tab === 'store') view = <VendorStore store={store} onSave={saveStore} />;
+  else if (tab === 'store') view = (
+    <>
+      <VendorStore store={store} onSave={saveStore} />
+      <section className="panel" style={{ marginTop: 'var(--space-6)', maxWidth: '28rem' }}>
+        <ChangePassword headingId="vendor-pw" flash={flash} onChange={(cur, next) => api.vendor.changePassword(cur, next)} />
+      </section>
+    </>
+  );
 
   return (
     <div className="console">

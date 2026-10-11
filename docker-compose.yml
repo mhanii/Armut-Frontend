@@ -29,6 +29,9 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
       ADMIN_NOTIFY_EMAILS: ${ADMIN_NOTIFY_EMAILS:-}
+      # on | off | auto (default: on whenever SMTP_HOST is set). New customers
+      # must enter an emailed 6-digit code before they can sign in.
+      EMAIL_VERIFICATION: ${EMAIL_VERIFICATION:-}
       STORE_NAME: ${STORE_NAME:-Armut}
       STORE_URL: ${SITE_URL:-}
     volumes:

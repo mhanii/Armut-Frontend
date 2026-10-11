@@ -173,6 +173,14 @@ export function StoreProvider({ children }) {
 
   const signup = React.useCallback(async (form) => {
     const s = await api.store.signup(form);
+    if (s.verify) { router.push('/verify-email?email=' + encodeURIComponent(s.email)); return; }
+    setUser(s.user);
+    router.push(cart.length ? '/checkout' : '/');
+    flash('Welcome to Armut, ' + s.user.name);
+  }, [cart.length, router, flash]);
+
+  const verifyEmail = React.useCallback(async (email, code) => {
+    const s = await api.store.verifyEmail(email, code);
     setUser(s.user);
     router.push(cart.length ? '/checkout' : '/');
     flash('Welcome to Armut, ' + s.user.name);
@@ -197,10 +205,10 @@ export function StoreProvider({ children }) {
     cart, cartCount, cartItems, unavailable, cartReady, catalogError, loadCatalog,
     catalog, products: products || [],
     addToCart, updateQty, removeUnavailable, overStock, capQuantities,
-    placing, placeOrder, user, hydrated, login, signup, resetPassword, signOut, goCheckout, flash,
+    placing, placeOrder, user, hydrated, login, signup, verifyEmail, resetPassword, signOut, goCheckout, flash,
   }), [cart, cartCount, cartItems, unavailable, cartReady, catalogError, loadCatalog, catalog, products,
        addToCart, updateQty, removeUnavailable, overStock, capQuantities,
-       placing, placeOrder, user, hydrated, login, signup, resetPassword, signOut, goCheckout, flash]);
+       placing, placeOrder, user, hydrated, login, signup, verifyEmail, resetPassword, signOut, goCheckout, flash]);
 
   const rooms = React.useMemo(() => (catalog?.categories || []).map(c => c.name), [catalog]);
 

@@ -39,6 +39,16 @@ router.post('/auth/login', rateLimit({ max: 10, windowMs: 15 * 60 * 1000 }), h((
   res.json({ token: sign({ id: a.id, role: 'admin', email: a.email, name: a.name }), user });
 }));
 
+// PUT /auth/password  { current, password }
+router.put('/auth/password', requireAdmin, rateLimit({ max: 10, windowMs: 15 * 60 * 1000 }), h((req, res) => {
+  const { current, password } = req.body || {};
+  if (!password || String(password).length < 6) throw new ApiError('Password must be at least 6 characters.', 422, 'validation');
+  const row = db.prepare(`SELECT * FROM admins WHERE id = ?`).get(req.auth.id);
+  if (!row || !compare(current, row.password_hash)) throw new ApiError('Your current password is not right.', 403, 'wrong_password');
+  db.prepare(`UPDATE admins SET password_hash = ? WHERE id = ?`).run(hash(password), row.id);
+  res.json({ ok: true });
+}));
+
 // POST /auth/logout
 router.post('/auth/logout', (req, res) => res.status(204).end());
 

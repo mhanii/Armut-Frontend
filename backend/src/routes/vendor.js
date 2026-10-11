@@ -2,7 +2,7 @@
 const express = require('express');
 const mailer = require('../mailer.js');
 const { db } = require('../db.js');
-const { compare, sign, requireRole } = require('../auth.js');
+const { hash, compare, sign, requireRole } = require('../auth.js');
 const { upload, fileUrl } = require('../upload.js');
 const { ApiError, EMAIL, assertCreds, num, int, today, toVendorProduct } = require('../helpers.js');
 
@@ -49,6 +49,16 @@ router.post('/auth/login', rateLimit({ max: 10, windowMs: 15 * 60 * 1000 }), h((
   if (v.status === 'Suspended') throw new ApiError('This vendor account has been suspended.', 403, 'suspended');
   const user = { name: v.manager || v.store, email: v.email, role: 'vendor' };
   res.json({ token: sign({ id: v.id, role: 'vendor', email: v.email, name: user.name }), user });
+}));
+
+// PUT /auth/password  { current, password }
+router.put('/auth/password', requireVendor, rateLimit({ max: 10, windowMs: 15 * 60 * 1000 }), h((req, res) => {
+  const { current, password } = req.body || {};
+  if (!password || String(password).length < 6) throw new ApiError('Password must be at least 6 characters.', 422, 'validation');
+  const row = db.prepare(`SELECT * FROM vendors WHERE id = ?`).get(req.auth.id);
+  if (!row || !compare(current, row.password_hash)) throw new ApiError('Your current password is not right.', 403, 'wrong_password');
+  db.prepare(`UPDATE vendors SET password_hash = ? WHERE id = ?`).run(hash(password), row.id);
+  res.json({ ok: true });
 }));
 
 // POST /auth/logout

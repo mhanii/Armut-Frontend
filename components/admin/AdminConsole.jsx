@@ -4,7 +4,8 @@ import { api } from '@/lib/api.js';
 import { useFlash } from '@/lib/useFlash.js';
 import { Toast } from '@/components/ui/Toast.jsx';
 import { LoadScreen, ErrorScreen } from '@/components/ui/AppStates.jsx';
-import { AdminSidebar } from './shell.jsx';
+import { AdminSidebar, PageTitle } from './shell.jsx';
+import { ChangePassword } from '@/components/ui/ChangePassword.jsx';
 import { AdminLogin } from './AdminLogin.jsx';
 import { AdminOverview } from './AdminOverview.jsx';
 import { AdminVendors } from './AdminVendors.jsx';
@@ -88,6 +89,14 @@ export function AdminConsole() {
   else if (tab === 'products') view = <AdminProducts products={products} vendors={vendors} onModerate={moderate} />;
   else if (tab === 'orders') view = <AdminOrders orders={orders} />;
   else if (tab === 'clients') view = <AdminClients clients={clients} />;
+  else if (tab === 'account') view = (
+    <div className="stack stack--lg">
+      <PageTitle eyebrow="Security" title="Your account" />
+      <section className="panel" style={{ maxWidth: '28rem' }}>
+        <ChangePassword headingId="admin-pw" flash={flash} onChange={(cur, next) => api.admin.changePassword(cur, next)} />
+      </section>
+    </div>
+  );
   else if (tab === 'content') view = <AdminContent content={content} onSave={saveContent} onUpload={uploadImage} flash={flash} />;
 
   return (

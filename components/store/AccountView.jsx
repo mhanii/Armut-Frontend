@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/Icon.jsx';
 import { api } from '@/lib/api.js';
 import { useStore } from './StoreProvider.jsx';
 import { AddressBook } from './AddressBook.jsx';
+import { ChangePassword } from '@/components/ui/ChangePassword.jsx';
 
 export const STATUS_PILL = {
   Processing: 'pill--warn',
@@ -164,6 +165,9 @@ export function AccountView() {
           />
         </section>
       </div>
+      <section className="panel" style={{ marginTop: 'var(--space-6)', maxWidth: '28rem' }}>
+        <ChangePassword onChange={(cur, next) => api.store.changePassword(cur, next)} flash={flash} />
+      </section>
     </div>
   );
 }

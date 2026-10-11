@@ -13,6 +13,7 @@ const ITEMS = [
   { id: 'orders', label: 'Orders', icon: 'cart' },
   { id: 'clients', label: 'Customers', icon: 'users' },
   { id: 'content', label: 'Site content', icon: 'image' },
+  { id: 'account', label: 'Account', icon: 'user' },
 ];
 
 export function AdminSidebar({ tab, setTab, onSignOut }) {

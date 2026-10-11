@@ -89,7 +89,8 @@ It refuses to run against a database that already has rows, so you cannot wipe
 live orders by re-running it by mistake. (`npm run reset` overrides that — it
 deletes everything. Never point it at production data.)
 
-Then sign into `https://armut.com/admin` and change the seeded passwords.
+Then sign into `https://armut.com/admin` and change the seeded password from the
+**Account** tab (vendors have the same form under **My store**).
 
 ## 5. Verify
 
@@ -199,3 +200,24 @@ curl -s localhost:3000/product/1 | grep -o 'Minimalist Sofa' | head -1
 | Admin | `admin@armut.com` | `admin123` |
 | Vendor | `hello@bosphoruswood.com` | `vendor123` |
 | Customer | `ada@example.com` | `client123` |
+
+## Email verification and account recovery
+
+**Sign-up verification.** When outgoing mail is configured (`SMTP_HOST` set), a
+new customer must enter a 6-digit code emailed to them before they get a
+session. The code expires after 15 minutes, allows five wrong guesses, and can
+be resent every 30 seconds. `EMAIL_VERIFICATION=on|off|auto` overrides this;
+`auto` (the default) means "on when SMTP is configured". Customers who existed
+before the feature are treated as verified.
+
+**Admin/vendor accounts** are managed from the `api` container's terminal when
+nobody can sign in:
+
+```bash
+node src/accounts.js admin:add you@example.com "Your Name"   # password from $NEW_PASSWORD
+node src/accounts.js passwd admin you@example.com            # also: vendor | user
+node src/accounts.js verify customer@example.com             # confirm a customer by hand
+```
+
+Set the password in the environment so it stays out of shell history, e.g.
+`NEW_PASSWORD='…' node src/accounts.js passwd admin you@example.com`.

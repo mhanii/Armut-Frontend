@@ -228,6 +228,16 @@ function passwordChanged({ name, email }) {
   return send({ to: email, subject, html, text });
 }
 
+function verificationCode({ name, email, code, minutes }) {
+  const subject = `${code} is your ${NAME} verification code`;
+  const html = shell(`Confirm your email`, `
+    ${para(`Hi ${esc(name)}, enter this code to finish creating your account:`)}
+    <p style="margin:8px 0 20px;font-family:'SFMono-Regular',Menlo,Consolas,monospace;font-size:34px;letter-spacing:.35em;color:${C.ink};font-weight:600">${esc(code)}</p>
+    ${fine(`The code expires in ${minutes} minutes. If you did not create an account, ignore this email — nothing will happen.`)}`, `Your code is ${code}`);
+  const text = `Hi ${name},\n\nYour ${NAME} verification code is: ${code}\n\nIt expires in ${minutes} minutes. If you did not create an account, ignore this email.\n`;
+  return send({ to: email, subject, html, text });
+}
+
 function welcome({ name, email }) {
   const subject = `Welcome to ${NAME}`;
   const url = (STORE_URL || '').replace(/\/+$/, '');
@@ -243,6 +253,7 @@ module.exports = {
   passwordReset: safe('password-reset', passwordReset),
   passwordChanged: safe('password-changed', passwordChanged),
   welcome: safe('welcome', welcome),
+  verificationCode: safe('verification-code', verificationCode),
   send, configured, adminRecipients,
   orderPlacedAdmin: safe('new-order', orderPlacedAdmin),
   orderConfirmationCustomer: safe('order-confirmation', orderConfirmationCustomer),

@@ -148,6 +148,22 @@ CREATE TABLE IF NOT EXISTS password_resets (
   used_at    INTEGER
 );
 CREATE INDEX IF NOT EXISTS password_resets_user ON password_resets(user_id);
+
+-- One live sign-up code per account. Only a hash is stored, and the hash is
+-- salted with the user id so equal codes do not look equal.
+CREATE TABLE IF NOT EXISTS email_verifications (
+  user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  code_hash  TEXT NOT NULL,
+  expires_at INTEGER NOT NULL,
+  attempts   INTEGER NOT NULL DEFAULT 0,
+  sent_at    INTEGER NOT NULL
+);
 `);
+
+// Accounts that existed before verification was introduced are grandfathered
+// in as verified — otherwise the first deploy would lock out every customer.
+if (addColumn('users', 'email_verified_at', 'TEXT')) {
+  db.exec(`UPDATE users SET email_verified_at = created_at WHERE email_verified_at IS NULL`);
+}
 
 module.exports = { db, DATA_DIR, addColumn };

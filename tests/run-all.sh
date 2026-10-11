@@ -34,13 +34,20 @@ if [ -z "$BASE" ]; then
   # UPLOAD_DIR too, or the upload tests write real files into backend/uploads/.
   ( cd "$BACKEND" && DATA_DIR="$TMP/data" UPLOAD_DIR="$TMP/uploads" PORT="$API_PORT" \
       SMTP_HOST=127.0.0.1 SMTP_PORT="$SMTP_PORT_T" MAIL_FROM='Armut <no-reply@test>' \
-      ADMIN_NOTIFY_EMAILS='ops@test' STORE_URL='http://store.test' node src/server.js >"$TMP/api.log" 2>&1 & )
+      ADMIN_NOTIFY_EMAILS='ops@test' STORE_URL='http://store.test' EMAIL_VERIFICATION=off node src/server.js >"$TMP/api.log" 2>&1 & )
   for i in $(seq 1 40); do curl -sf "http://localhost:$API_PORT/health" >/dev/null 2>&1 && break; sleep 0.25; done
   if ! curl -sf "http://localhost:$API_PORT/health" >/dev/null 2>&1; then
     echo "FATAL: the API did not come up."; cat "$TMP/api.log" 2>/dev/null; exit 1
   fi
   BASE="http://localhost:$API_PORT"
   STARTED=1
+
+  # A second API, same sink, with sign-up verification switched on.
+  VERIFY_PORT=$(free_port)
+  ( cd "$BACKEND" && DATA_DIR="$TMP/data-verify" UPLOAD_DIR="$TMP/uploads-verify" PORT="$VERIFY_PORT" \
+      SMTP_HOST=127.0.0.1 SMTP_PORT="$SMTP_PORT_T" MAIL_FROM='Armut <no-reply@test>' \
+      STORE_URL='http://store.test' EMAIL_VERIFICATION=on VERIFY_RESEND_SECONDS=2 node src/server.js >"$TMP/api-verify.log" 2>&1 & )
+  for i in $(seq 1 40); do curl -sf "http://localhost:$VERIFY_PORT/health" >/dev/null 2>&1 && break; sleep 0.25; done
 fi
 
 echo "Testing $BASE"
@@ -54,6 +61,7 @@ run "vendor + admin"      "$HERE/consoles.sh" "$BASE"
 if [ -n "${STARTED:-}" ]; then
   run "end-to-end lifecycle" "$HERE/e2e.sh" "$BASE" "$TMP/mail.log"
   run "password reset" "$HERE/password-reset.sh" "$BASE" "$TMP/mail.log"
+  run "email verification" "$HERE/verify-email.sh" "http://localhost:$VERIFY_PORT" "$TMP/mail.log"
   run "email resilience" "$HERE/mail-resilience.sh"
 else
   echo; echo "(email suites skipped — they need a local SMTP sink)"
@@ -65,6 +73,8 @@ if [ -n "${STARTED:-}" ]; then
   kill "$SINK_PID" 2>/dev/null
   P=$(ss -lntp 2>/dev/null | grep ":$API_PORT" | grep -o 'pid=[0-9]*' | cut -d= -f2 | head -1)
   [ -n "$P" ] && kill "$P" 2>/dev/null
+  PV=$(ss -lntp 2>/dev/null | grep ":$VERIFY_PORT" | grep -o 'pid=[0-9]*' | cut -d= -f2 | head -1)
+  [ -n "$PV" ] && kill "$PV" 2>/dev/null
 fi
 
 echo; echo "═══════════════════════════════"

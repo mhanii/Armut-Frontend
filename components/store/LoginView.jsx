@@ -45,7 +45,12 @@ export function LoginView() {
 
     setError(null); setBusy(true);
     try { await login(email.trim(), password); }
-    catch (err) { setProblems({}); setError(err.message || 'Sign in failed.'); setBusy(false); }
+    catch (err) {
+      // Right password, but the address was never confirmed: the server has
+      // just emailed a fresh code, so go and enter it.
+      if (err.status === 403 && err.code === 'email_unverified') { router.push('/verify-email?email=' + encodeURIComponent(email.trim()) + '&sent=1'); return; }
+      setProblems({}); setError(err.message || 'Sign in failed.'); setBusy(false);
+    }
   };
 
   return (

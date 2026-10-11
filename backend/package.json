@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/seed.js",
-    "reset": "node src/seed.js --reset"
+    "reset": "node src/seed.js --reset",
+    "accounts": "node src/accounts.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
