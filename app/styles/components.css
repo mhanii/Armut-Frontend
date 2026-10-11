@@ -1,0 +1,706 @@
+/* ---------------------------------------------------------------------------
+   Components. Hover and focus live here, not in React state — fewer
+   re-renders, and keyboard users get the same affordances as mouse users.
+   --------------------------------------------------------------------------- */
+
+/* ---- button --------------------------------------------------------------- */
+
+.btn {
+  --btn-bg: var(--cta);
+  --btn-fg: var(--cta-fg);
+  --btn-bd: var(--cta);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.875rem 1.75rem;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  letter-spacing: var(--tracking-wide);
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-bd);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+.btn:hover { --btn-bg: var(--cta-hover); --btn-bd: var(--cta-hover); }
+.btn:active { transform: translateY(0.5px); }
+/* A dimmed fill still reads as "a button, in grey". An unfilled control with
+   muted text reads as "not available yet", which is what it means — and the
+   line underneath says why. */
+.btn[disabled] {
+  cursor: not-allowed;
+  --btn-bg: transparent;
+  --btn-fg: var(--ink-400);
+  --btn-bd: var(--border-strong);
+}
+.btn[disabled]:hover { --btn-bg: transparent; --btn-fg: var(--ink-400); --btn-bd: var(--border-strong); }
+
+/* White on --brand is only 3.46:1; the darker clay clears AA. */
+.btn--brand   { --btn-bg: var(--brand-dark); --btn-bd: var(--brand-dark); --btn-fg: var(--on-brand); }
+.btn--brand:hover { --btn-bg: var(--brand-700); --btn-bd: var(--brand-700); }
+.btn--success { --btn-bg: var(--success); --btn-bd: var(--success); --btn-fg: var(--on-brand); }
+.btn--success:hover { --btn-bg: var(--success-dark); --btn-bd: var(--success-dark); }
+.btn--danger  { --btn-bg: var(--danger); --btn-bd: var(--danger); --btn-fg: var(--on-brand); }
+.btn--danger:hover { --btn-bg: var(--danger-dark); --btn-bd: var(--danger-dark); }
+
+.btn--outline { --btn-bg: transparent; --btn-fg: var(--ink-body); --btn-bd: var(--border-strong); }
+.btn--outline:hover { --btn-bg: var(--ink-body); --btn-fg: var(--bg-page); --btn-bd: var(--ink-body); }
+.btn--outline[disabled]:hover { --btn-bg: transparent; --btn-fg: var(--ink-400); --btn-bd: var(--border-strong); }
+
+.btn--ghost { --btn-bg: transparent; --btn-fg: var(--ink-600); --btn-bd: transparent; }
+.btn--ghost:hover { --btn-bg: var(--surface-muted); --btn-fg: var(--ink-body); --btn-bd: transparent; }
+.btn--ghost[disabled]:hover { --btn-bg: transparent; --btn-fg: var(--ink-400); }
+
+.btn--sm { padding: 0.625rem 1.125rem; font-size: var(--text-xs); }
+.btn--lg { padding: 1.0625rem 2.25rem; font-size: var(--text-base); }
+.btn--block { width: 100%; }
+
+/* A text link that behaves like a button. */
+.link-btn {
+  background: none; border: none; padding: 0;
+  font: inherit; color: var(--brand-700); cursor: pointer;
+  border-bottom: 1px solid currentColor; line-height: 1.2;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.link-btn:hover { color: var(--ink-body); }
+
+/* Small uppercase inline action ("Edit", "Remove", "+ Add New"). */
+.action {
+  background: none; border: none; padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--brand-700); cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.action:hover { color: var(--ink-body); }
+.action--quiet { color: var(--ink-500); }
+.action--quiet:hover { color: var(--ink-body); }
+.action[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- form fields ---------------------------------------------------------- */
+
+.field { display: flex; flex-direction: column; gap: var(--space-2); }
+.field__label {
+  font-size: 0.6875rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--ink-600);
+}
+.field__input,
+.field__textarea,
+.field__select {
+  width: 100%;
+  padding: 0.8125rem 0.875rem;
+  font-size: var(--text-base);
+  color: var(--ink-body);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.field__input::placeholder,
+.field__textarea::placeholder { color: var(--ink-500); }
+.field__input:hover, .field__textarea:hover, .field__select:hover { border-color: var(--ink-400); }
+.field__input:focus, .field__textarea:focus, .field__select:focus { border-color: var(--brand); }
+.field__textarea { resize: vertical; line-height: var(--leading-normal); min-height: 6rem; }
+.field__error { font-size: var(--text-sm); color: var(--danger-dark); }
+/* A field marked aria-invalid should look invalid. The message alone left
+   the control itself looking untouched, so on a form with seven fields the
+   eye had to read prose to find the one that needed attention. */
+.field__input[aria-invalid="true"],
+.field__textarea[aria-invalid="true"],
+.field__select[aria-invalid="true"] { border-color: var(--danger-dark); }
+
+/* Grid toolbar: how many, and in what order. A hairline under it ties the
+   controls to the grid below rather than leaving them floating under the
+   heading. */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); flex-wrap: wrap;
+  margin-top: calc(var(--space-4) * -1);
+  padding-bottom: var(--space-4);
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  border-bottom: 1px solid var(--border);
+}
+.sort { display: flex; align-items: center; gap: var(--space-3); }
+.sort__label { font-size: var(--text-sm); color: var(--ink-500); }
+.sort__select {
+  font-family: inherit; font-size: var(--text-sm);
+  padding: 0.4375rem 0.625rem;
+  color: var(--ink-body); background: var(--surface);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.sort__select:hover { border-color: var(--ink-400); }
+
+/* Search pill (header and inline). */
+.search {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 0.625rem 0.875rem;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink-500);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.search:focus-within { border-color: var(--brand); color: var(--ink-body); }
+.search__input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: var(--text-sm); }
+
+/* Selectable card (address, delivery method). */
+.choice {
+  display: flex; align-items: center; gap: var(--space-4);
+  width: 100%; padding: var(--space-4) var(--space-5);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard);
+}
+.choice:hover { border-color: var(--border-strong); }
+.choice[aria-checked="true"], .choice.is-selected { border-color: var(--ink-body); background: var(--surface-muted); }
+.choice__marker {
+  flex-shrink: 0; width: 1rem; height: 1rem;
+  border: 1.5px solid var(--border-strong); border-radius: var(--radius-full);
+  transition: border var(--duration-fast) var(--ease-standard);
+}
+.choice[aria-checked="true"] .choice__marker, .choice.is-selected .choice__marker { border: 5px solid var(--ink-body); }
+.choice__title { margin: 0; font-weight: var(--weight-medium); color: var(--ink-body); }
+.choice__sub { margin: 2px 0 0; font-size: var(--text-sm); color: var(--ink-500); }
+
+/* ---- surfaces ------------------------------------------------------------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+.panel--flush { padding: 0; overflow: hidden; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 0.25rem 0.625rem;
+  font-size: var(--text-xs); font-weight: var(--weight-medium);
+  border-radius: var(--radius-full);
+  background: var(--surface-muted); color: var(--ink-600);
+}
+.pill--ok    { background: var(--pill-ok-bg); color: var(--success-dark); }
+.pill--warn  { background: var(--pill-warn-bg); color: var(--brand-700); }
+.pill--risk  { background: var(--pill-risk-bg); color: var(--danger-dark); }
+
+/* ---- product card --------------------------------------------------------- */
+
+/* A column, so the rating row can be pinned to the bottom. Grid items are
+   already equal height; without this a product whose name wraps to two
+   lines pushed its rating below its neighbours' and the row of cards read
+   as misaligned rather than as a row. */
+.card { display: flex; flex-direction: column; width: 100%; text-align: left; background: none; border: none; padding: 0; cursor: pointer; }
+.card__media {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: var(--radius-sm);
+}
+.card__img { width: 100%; height: 100%; object-fit: cover; transition: opacity var(--duration-base) var(--ease-standard); }
+/* A quiet tonal shift on hover rather than a zoom — the product stays put. */
+.card:hover .card__img { opacity: 0.88; }
+.card__empty {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--ink-500);
+}
+.card__flag {
+  position: absolute; top: var(--space-3); left: var(--space-3);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.625rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  background: var(--surface); color: var(--brand-700);
+  border-radius: 2px;
+}
+.card__body { padding-top: var(--space-4); display: flex; flex-direction: column; flex: 1 1 auto; }
+.card__cat { margin: 0 0 var(--space-1); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--ink-500); }
+.card__name { margin: 0; font-size: var(--text-base); font-weight: var(--weight-medium); color: var(--ink-body); }
+/* Name and price share a line while there is room for both. In a two-up phone
+   grid the card is ~170px wide and there is not, so they stack instead of the
+   name being squeezed to three characters a line. */
+.card__line { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.card__price { display: flex; align-items: baseline; gap: var(--space-2); flex-shrink: 0; }
+.card__now { font-weight: var(--weight-semibold); color: var(--ink-body); }
+@media (max-width: 34rem) {
+  .card__line { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+}
+.card__was { font-size: var(--text-sm); color: var(--ink-500); text-decoration: line-through; }
+.card__rating { margin-top: auto; padding-top: var(--space-3); }
+.card__stock { margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--brand-700); }
+/* Sold out reads as a state of the photograph, not as an alarm: the image
+   steps back, the label is the same quiet chip the discount uses. */
+.card--out .card__img { opacity: 0.55; }
+.card--out:hover .card__img { opacity: 0.55; }
+.card__flag--out { background: var(--surface-ink); color: var(--on-ink); }
+
+/* ---- tables --------------------------------------------------------------- */
+
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.table th {
+  padding: var(--space-3) var(--space-5);
+  text-align: left; white-space: nowrap;
+  font-size: 0.6875rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--ink-500); background: var(--surface-muted);
+}
+.table td { padding: var(--space-4) var(--space-5); color: var(--ink-600); border-top: 1px solid var(--border); }
+.table tbody tr:hover td { background: var(--bg-page); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .strong { color: var(--ink-body); font-weight: var(--weight-medium); }
+
+/* ---- overlay / modal ------------------------------------------------------ */
+
+.overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-4);
+  background: var(--overlay);
+}
+.modal {
+  width: min(32rem, 100%);
+  max-height: 85vh; overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  box-shadow: var(--shadow-lg);
+}
+.modal__title { margin: 0 0 var(--space-4); font-family: var(--font-display); font-weight: var(--weight-normal); font-size: var(--text-2xl); color: var(--ink-body); }
+
+.toast {
+  position: fixed; left: 50%; bottom: var(--space-8); z-index: 80;
+  transform: translateX(-50%);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--on-ink); background: var(--surface-ink);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+.toast--error { background: var(--danger-dark); }
+
+/* ---- empty / loading states ----------------------------------------------- */
+
+.state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-height: 50vh; padding: var(--space-12) var(--space-4); text-align: center; }
+.spinner { width: 2rem; height: 2rem; border: 2px solid var(--border); border-top-color: var(--brand); border-radius: var(--radius-full); animation: armut-spin 0.8s linear infinite; }
+
+/* ---- category tile -------------------------------------------------------- */
+
+.tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+.tile__img { width: 100%; height: 100%; object-fit: cover; transition: opacity var(--duration-base) var(--ease-standard); }
+.tile:hover .tile__img { opacity: 0.9; }
+.tile__scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(28,22,16,0.62) 0%, rgba(28,22,16,0.08) 45%, rgba(28,22,16,0) 70%); }
+.tile__label {
+  position: absolute; inset: auto var(--space-5) var(--space-4) var(--space-5);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  color: var(--on-ink);
+}
+.tile__name { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-medium); letter-spacing: var(--tracking-tight); }
+.tile__arrow { transition: transform var(--duration-fast) var(--ease-standard); opacity: 0.8; }
+.tile:hover .tile__arrow { transform: translateX(3px); opacity: 1; }
+
+/* ---- rating --------------------------------------------------------------- */
+
+.rating { display: flex; align-items: center; gap: var(--space-1); color: var(--star); }
+.rating__text { font-size: var(--text-sm); color: var(--ink-500); }
+
+/* ---- trust strip ---------------------------------------------------------- */
+
+.trust { border-block: 1px solid var(--border); background: var(--surface); }
+.trust__list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  margin: 0; padding: 0; list-style: none;
+}
+.trust__item {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  font-size: var(--text-xs); font-weight: var(--weight-medium);
+  text-transform: uppercase; letter-spacing: var(--tracking-wide);
+  color: var(--ink-600); text-align: center;
+}
+.trust__item + .trust__item { border-left: 1px solid var(--border); }
+.trust__dot { width: 4px; height: 4px; border-radius: var(--radius-full); background: var(--brand); flex-shrink: 0; }
+/* Below tablet width, 2 × 2 rather than four stacked rows: four short
+   phrases were taking a full screen-height's quarter on a phone. */
+@media (max-width: 47.99rem) {
+  .trust__list { grid-template-columns: repeat(2, 1fr); }
+  .trust__item { padding: var(--space-4) var(--space-2); }
+  .trust__item + .trust__item { border-left: none; }
+  .trust__item:nth-child(even) { border-left: 1px solid var(--border); }
+  .trust__item:nth-child(n + 3) { border-top: 1px solid var(--border); }
+}
+
+/* The hidden radio still drives focus, so mirror its ring onto the card. */
+.choice:has(input:focus-visible) { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ---- header --------------------------------------------------------------- */
+
+.header { position: sticky; top: 0; z-index: 40; background: var(--bg-page); border-bottom: 1px solid var(--border); }
+.header__bar {
+  display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 2rem);
+  padding-block: var(--space-4);
+}
+.header__logo {
+  font-family: var(--font-display); font-size: var(--text-2xl);
+  color: var(--ink-body); letter-spacing: 0.01em; line-height: 1;
+  white-space: nowrap;
+}
+.header__search { flex: 1; max-width: 22rem; margin-inline: auto; }
+.header__actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+
+.icon-btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: none; border: none; border-radius: var(--radius-sm);
+  color: var(--ink-body); cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.icon-btn:hover { background: var(--surface-muted); }
+.icon-btn__label { font-size: var(--text-sm); }
+.icon-btn__count {
+  position: absolute; top: 0; right: 0;
+  min-width: 1.05rem; height: 1.05rem; padding-inline: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.625rem; font-weight: var(--weight-semibold);
+  color: var(--on-brand); background: var(--brand-dark); border-radius: var(--radius-full);
+}
+
+/* Category rail. Scrolls horizontally on small screens rather than wrapping
+   into a second line or hiding behind a hamburger — categories stay one tap away. */
+/* The rail scrolls when the rooms do not fit. A mask fades the trailing edge
+   so a clipped word reads as "there is more", not as a layout bug. */
+.header__nav { border-top: 1px solid var(--border); position: relative; }
+/* The fade is driven by the rail's real scroll position (see Header.jsx), not
+   by a breakpoint: each edge is soft only while there is something past it, so
+   at a width where every room fits there is no fade at all, and scrolling to
+   the end brings the last room fully into view instead of parking it under a
+   gradient. Zero-width stops collapse to a plain opaque mask. */
+.header__rail {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  display: flex; gap: clamp(1rem, 3vw, 2rem);
+  overflow-x: auto; scrollbar-width: none;
+  padding-block: var(--space-3);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+}
+.header__rail[data-fade~="start"] { --fade-start: 1.5rem; }
+.header__rail[data-fade~="end"]   { --fade-end: 2.5rem; }
+.header__rail::-webkit-scrollbar { display: none; }
+.header__link {
+  flex-shrink: 0;
+  font-size: var(--text-sm); color: var(--ink-600);
+  padding-bottom: 2px; border-bottom: 1px solid transparent;
+  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+.header__link:hover { color: var(--ink-body); border-bottom-color: var(--brand); }
+.header__link[aria-current="page"] { color: var(--ink-body); border-bottom-color: var(--ink-body); }
+
+/* Below 48rem the inline search would crowd the logo, so it moves to its own row. */
+.header__search--inline { display: none; }
+.header__search--stacked { display: block; padding-bottom: var(--space-3); }
+@media (min-width: 48rem) {
+  .header__search--inline { display: block; }
+  .header__search--stacked { display: none; }
+}
+
+/* ---- hero ----------------------------------------------------------------- */
+
+.hero { position: relative; background: var(--bg-page); overflow: hidden; }
+.hero__slide { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+.hero__slide[hidden] { display: none; }
+.hero__copy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-5); padding-block: clamp(3rem, 7vw, 5.5rem); max-width: 34rem; }
+.hero__media { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-muted); order: -1; }
+.hero__img { width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 60rem) {
+  .hero__slide { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); }
+  .hero__media { order: 0; aspect-ratio: auto; align-self: stretch; min-height: 32rem; }
+}
+.hero__controls { display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-6); }
+.hero__dot {
+  width: 2rem; height: 3px; padding: 0;
+  background: var(--border-strong); border: none; border-radius: var(--radius-full);
+  cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
+}
+.hero__dot[aria-current="true"] { background: var(--ink-body); }
+/* Sits with the dots, reads as part of the same control group. */
+.hero__toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem; margin-left: var(--space-2);
+  color: var(--ink-500); background: none;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+.hero__toggle:hover { color: var(--ink-body); border-color: var(--ink-body); }
+.hero__dot:hover { background: var(--ink-400); }
+
+/* Editorial band: text one side, photograph the other, the photograph filling
+   its half however tall the text column turns out to be. */
+.craft__media { position: relative; min-height: 22rem; background: var(--surface-muted); overflow: hidden; }
+.craft__img   { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.craft__empty { position: absolute; inset: 0; }
+
+/* ---- footer --------------------------------------------------------------- */
+
+.footer { background: var(--surface-ink); color: var(--on-ink); border-top: 1px solid var(--ink-band-edge); }
+.footer__grid {
+  display: grid; gap: clamp(2rem, 5vw, 3rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  padding-block: clamp(3rem, 6vw, 4rem) var(--space-10);
+}
+.footer__brand { font-family: var(--font-display); font-size: var(--text-2xl); }
+.footer__blurb { margin: var(--space-4) 0 0; font-size: var(--text-sm); line-height: var(--leading-relaxed); color: var(--on-ink-muted); max-width: 24rem; }
+.footer__head {
+  margin: 0 0 var(--space-4);
+  font-size: 0.6875rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--on-ink-dim);
+}
+.footer__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-3); }
+.footer__link { font-size: var(--text-sm); color: var(--on-ink-muted); transition: color var(--duration-fast) var(--ease-standard); }
+.footer__link:hover { color: var(--on-ink); }
+.footer__text { font-size: var(--text-sm); color: var(--on-ink-muted); line-height: var(--leading-relaxed); margin: 0; }
+.footer__base {
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3);
+  padding-block: var(--space-6);
+  border-top: 1px solid var(--on-ink-line);
+  font-size: var(--text-sm); color: var(--on-ink-dim);
+}
+
+/* ---- auth pages ----------------------------------------------------------- */
+
+.auth { max-width: 26rem; margin-inline: auto; padding-block: clamp(3rem, 8vw, 5rem) clamp(4rem, 10vw, 6rem); }
+.auth__head { text-align: center; margin-bottom: var(--space-8); display: flex; flex-direction: column; gap: var(--space-3); }
+.auth__form { display: flex; flex-direction: column; gap: var(--space-5); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: clamp(1.5rem, 4vw, 2.25rem); }
+.auth__alt { text-align: center; margin-top: var(--space-6); font-size: var(--text-sm); color: var(--ink-500); }
+.auth__forgot { margin: calc(var(--space-2) * -1) 0 0; text-align: right; font-size: var(--text-sm); }
+.auth__lede { color: var(--ink-500); max-width: 26rem; margin: 0 auto; }
+.auth__form > p { margin: 0; }
+/* A second alt line is secondary to the first. Rank it by spacing, not by
+   colour: --ink-400 is 3.01:1 on white, which is fine for a rule or an
+   icon but not for text. */
+.auth__alt--quiet { margin-top: var(--space-2); }
+
+.alert {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+.alert--error { background: var(--alert-error-bg); border-color: var(--alert-error-bd); color: var(--danger-dark); }
+/* Not an error — the cart is fine, one number in it needs adjusting. */
+.alert--warn { background: var(--pill-warn-bg); border-color: var(--alert-warn-bd); color: var(--brand-700); }
+
+/* ---- cart ----------------------------------------------------------------- */
+
+.line {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding-block: var(--space-5);
+  flex-wrap: wrap;
+}
+.line + .line { border-top: 1px solid var(--border); }
+.line__media { width: 4.5rem; height: 5.25rem; flex-shrink: 0; object-fit: cover; border-radius: var(--radius-sm); background: var(--surface-muted); }
+.line__media-link { display: block; flex-shrink: 0; border-radius: var(--radius-sm); }
+.line__info { flex: 1 1 10rem; min-width: 0; }
+.line__note { margin: var(--space-1) 0 0; font-size: var(--text-xs); color: var(--brand-700); }
+.line__name { margin: 0; font-weight: var(--weight-medium); color: var(--ink-body); }
+.line__controls { display: flex; align-items: center; gap: clamp(0.75rem, 3vw, 1.25rem); margin-left: auto; }
+
+.stepper { display: flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); }
+.stepper__btn {
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  background: none; border: none; cursor: pointer; color: var(--ink-600);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.stepper__btn:hover:not([disabled]) { color: var(--ink-body); }
+.stepper__btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+.stepper__value { min-width: 2rem; text-align: center; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+
+.line__total { min-width: 4.5rem; text-align: right; font-weight: var(--weight-semibold); color: var(--ink-body); font-variant-numeric: tabular-nums; }
+/* These are real actions (remove from cart, delete a listing), so they sit at
+   a readable weight rather than the decorative --ink-400 they had. */
+.icon-action { background: none; border: none; padding: var(--space-2); cursor: pointer; color: var(--ink-500); border-radius: var(--radius-sm); transition: color var(--duration-fast) var(--ease-standard); }
+.icon-action:hover { color: var(--danger-dark); }
+
+/* The order summary follows you down a long cart instead of scrolling away. */
+.summary { position: sticky; top: calc(var(--space-20) + var(--space-8)); }
+.summary__row { display: flex; justify-content: space-between; gap: var(--space-4); color: var(--ink-600); }
+.summary__head { align-items: baseline; margin-bottom: var(--space-5); }
+
+/* Order confirmation. One card per workshop the basket was split across, then
+   one card for the money — the split is a fact about shipping, not about what
+   was paid, so the totals are not repeated per order. */
+.confirm__order { padding: var(--space-5); }
+.confirm__head  { align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-3); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
+.confirm__totals { padding: var(--space-5); }
+.summary__row--total {
+  padding-top: var(--space-4); margin-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-xl); font-weight: var(--weight-semibold); color: var(--ink-body);
+}
+.summary__value { color: var(--ink-body); font-variant-numeric: tabular-nums; }
+
+.page { padding-block: clamp(2rem, 5vw, 3rem) clamp(4rem, 10vw, 6rem); }
+.page__title { margin: 0 0 clamp(1.5rem, 4vw, 2rem); }
+
+/* ---- product detail ------------------------------------------------------- */
+
+.pdp__gallery { display: flex; flex-direction: column; gap: var(--space-3); }
+.pdp__main { aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--radius-sm); background: var(--surface-muted); }
+.pdp__main img { width: 100%; height: 100%; object-fit: cover; }
+.pdp__thumbs { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.pdp__thumb {
+  width: 4.25rem; height: 4.25rem; padding: 0;
+  overflow: hidden; cursor: pointer; background: none;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.pdp__thumb:hover { border-color: var(--border-strong); }
+.pdp__thumb[aria-current="true"] { border-color: var(--ink-body); }
+.pdp__thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* The buying column follows you past a long description on desktop. */
+@media (min-width: 60rem) {
+  .pdp__buy { position: sticky; top: calc(var(--space-20) + var(--space-10)); }
+}
+.pdp__price { display: flex; align-items: baseline; gap: var(--space-3); }
+.pdp__price-now { font-size: var(--text-3xl); font-weight: var(--weight-semibold); color: var(--ink-body); font-variant-numeric: tabular-nums; }
+.pdp__price-was { font-size: var(--text-xl); color: var(--ink-500); text-decoration: line-through; }
+.pdp__facts { display: flex; gap: clamp(1.5rem, 5vw, 2.5rem); flex-wrap: wrap; padding-top: var(--space-6); border-top: 1px solid var(--border); }
+.pdp__fact-label { margin: 0 0 2px; font-size: 0.6875rem; font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--ink-500); }
+.pdp__fact-value { margin: 0; font-size: var(--text-sm); color: var(--ink-body); }
+.swatch-list { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.swatch { width: 1.25rem; height: 1.25rem; border-radius: var(--radius-full); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.14); flex-shrink: 0; }
+
+.stock { font-size: var(--text-sm); }
+.stock--low { color: var(--brand-700); }
+.stock--out { color: var(--danger-dark); }
+.stock--ok  { color: var(--success-dark); }
+
+/* ---- reviews -------------------------------------------------------------- */
+
+.reviews { margin-top: clamp(3rem, 8vw, 5rem); padding-top: clamp(2rem, 5vw, 2.5rem); border-top: 1px solid var(--border); }
+.review + .review { border-top: 1px solid var(--border); padding-top: var(--space-5); }
+.review { padding-bottom: var(--space-5); max-width: 45rem; }
+/* The form and the list it adds to share one measure. */
+.review-form { max-width: 45rem; }
+.review__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.review__author { font-weight: var(--weight-semibold); color: var(--ink-body); font-size: var(--text-sm); }
+.star-picker { display: inline-flex; gap: var(--space-2); }
+.star-picker button { background: none; border: none; padding: 0; cursor: pointer; line-height: 0; border-radius: var(--radius-sm); }
+.note { background: var(--surface-muted); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); font-size: var(--text-sm); color: var(--ink-600); }
+
+/* ---- address book --------------------------------------------------------- */
+
+.address-form {
+  margin-top: var(--space-4);
+  padding: var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.address-form__pair { display: grid; gap: var(--space-4); }
+@media (min-width: 34rem) { .address-form__pair { grid-template-columns: 1fr 1fr; } }
+
+/* ---- order history -------------------------------------------------------- */
+
+.order { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); overflow: hidden; }
+.order__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: none; border: none; cursor: pointer; text-align: left;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.order__head:hover { background: var(--bg-page); }
+.order__title { flex: 1 1 auto; min-width: 0; }
+.order__state { display: flex; align-items: center; gap: var(--space-4); flex-shrink: 0; }
+.order__chev  { flex-shrink: 0; color: var(--ink-500); }
+/* On a phone the head has about 280px of usable width, which is not enough for
+   a number, a date, a workshop, a pill and a total on one line — it wrapped
+   "Order #1043" across two lines and the workshop across three. Two rows: the
+   order and its disclosure on top, its status and total beneath. */
+@media (max-width: 34rem) {
+  .order__head {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: start; gap: var(--space-3) var(--space-3);
+  }
+  .order__chev  { grid-column: 2; grid-row: 1; margin-top: 2px; }
+  .order__state { grid-column: 1 / -1; justify-content: space-between; }
+}
+.order__id { display: block; font-weight: var(--weight-medium); color: var(--ink-body); }
+.order__body { padding: var(--space-4) var(--space-5) var(--space-5); border-top: 1px solid var(--border); }
+
+/* A flush panel has no padding, so its own header supplies it. */
+.panel__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); flex-wrap: wrap;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+.panel__head > h2 { margin: 0; }
+
+.facts { margin: 0; }
+.facts__row { display: flex; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+
+.review--rating-only { padding-bottom: var(--space-4); }
+.swatch-item { display: flex; align-items: center; gap: var(--space-2); }
+.swatch-list { gap: var(--space-4) var(--space-5); }
+
+.tile__empty { position: absolute; inset: 0; }
+
+/* ---- theme toggle --------------------------------------------------------- */
+
+/* CSS picks the icon, so the control is correct in the very first paint and
+   survives hydration without a mismatch. */
+.theme-toggle__sun { display: none; }
+.theme-toggle__moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-toggle__moon { display: none; }
+  :root:not([data-theme='light']) .theme-toggle__sun { display: block; }
+}
+:root[data-theme='dark'] .theme-toggle__moon { display: none; }
+:root[data-theme='dark'] .theme-toggle__sun { display: block; }
+:root[data-theme='light'] .theme-toggle__moon { display: block; }
+:root[data-theme='light'] .theme-toggle__sun { display: none; }
+
+/* ---- theme toggle --------------------------------------------------------- */
+
+/* CSS picks the icon, so the control is correct in the very first paint and
+   survives hydration without a mismatch. */
+.theme-toggle__sun { display: none; }
+.theme-toggle__moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-toggle__moon { display: none; }
+  :root:not([data-theme='light']) .theme-toggle__sun { display: block; }
+}
+:root[data-theme='dark'] .theme-toggle__moon { display: none; }
+:root[data-theme='dark'] .theme-toggle__sun { display: block; }
+:root[data-theme='light'] .theme-toggle__moon { display: block; }
+:root[data-theme='light'] .theme-toggle__sun { display: none; }

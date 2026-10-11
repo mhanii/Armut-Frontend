@@ -1,0 +1,28 @@
+:root{
+/* Loaded and self-hosted by next/font (see app/layout.jsx); the literal names
+   stay as a fallback for any context where the variables are not set. */
+--font-display:var(--font-display-loaded),'Instrument Serif',Georgia,'Times New Roman',serif;
+--font-sans:var(--font-sans-loaded),'Hanken Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+--text-xs:0.75rem;
+--text-sm:0.875rem;
+--text-base:1rem;
+--text-lg:1.125rem;
+--text-xl:1.375rem;
+--text-2xl:1.75rem;
+--text-3xl:2.25rem;
+--text-4xl:3rem;
+--text-5xl:4rem;
+--text-6xl:5.5rem;
+--weight-normal:400;
+--weight-medium:500;
+--weight-semibold:600;
+--weight-bold:700;
+--leading-tight:1.1;
+--leading-snug:1.25;
+--leading-normal:1.5;
+--leading-relaxed:1.65;
+--tracking-tight:-0.02em;
+--tracking-normal:0;
+--tracking-wide:0.02em;
+--tracking-caps:0.14em;
+}

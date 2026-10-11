@@ -1,0 +1,79 @@
+# Armut — full stack for Dokploy (Docker Compose application type).
+#
+# Dokploy supplies the domains and TLS via Traefik; this file only declares the
+# two services, their persistent volumes and the variables they need. Set every
+# value in Dokploy's Environment tab — see DEPLOY.md.
+services:
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      TRUST_PROXY: 1
+      # REQUIRED — 32+ chars, unique per deployment.
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in the Dokploy environment}
+      # REQUIRED — the storefront origin(s) allowed to call this API.
+      CORS_ORIGIN: ${CORS_ORIGIN:?set CORS_ORIGIN to your storefront origin}
+      # Public origin of THIS api, so uploaded images get absolute URLs.
+      PUBLIC_URL: ${API_PUBLIC_URL:-}
+      DATA_DIR: /data
+      UPLOAD_DIR: /uploads
+      # Order email. Leave SMTP_HOST blank to disable sending.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      ADMIN_NOTIFY_EMAILS: ${ADMIN_NOTIFY_EMAILS:-}
+      STORE_NAME: ${STORE_NAME:-Armut}
+      STORE_URL: ${SITE_URL:-}
+    volumes:
+      - armut-data:/data
+      - armut-uploads:/uploads
+    expose:
+      - "4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* are compiled into the bundle — a change needs a rebuild.
+        NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL:?set API_PUBLIC_URL to the API's public https URL}
+        NEXT_PUBLIC_SITE_URL: ${SITE_URL:?set SITE_URL to the storefront's public https URL}
+        NEXT_PUBLIC_API_MODE: ${NEXT_PUBLIC_API_MODE:-live}
+        NEXT_PUBLIC_ENABLE_API_SWITCH: ${NEXT_PUBLIC_ENABLE_API_SWITCH:-}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      # Read at runtime by the sitemap and the server-rendered catalogue.
+      NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL}
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL}
+      # Server-side rendering talks to the API over the compose network rather
+      # than back out through the proxy. The browser still uses API_PUBLIC_URL.
+      API_INTERNAL_URL: http://api:4000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+
+volumes:
+  armut-data:
+  armut-uploads:

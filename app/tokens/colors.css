@@ -1,0 +1,185 @@
+:root{
+/* Warm terracotta/clay accent — the refined evolution of the original tan */
+--brand-50:#f1e9e1;
+--brand-100:#e4d3c3;
+--brand:#bd7a50;
+--brand-dark:#a5653d;
+--brand-700:#834e2f;
+/* Warm espresso ink. --ink-body, --ink-600 and --ink-500 are the text tones:
+   each clears WCAG AA (4.5:1) on all three surfaces, in both themes.
+   --ink-400 is NOT a text tone. It is 3.01:1 on --surface and only 2.53:1 on
+   --surface-muted, so it is reserved for things contrast does not govern:
+   hover borders, a carousel dot, disabled controls (1.4.3 exempts those) and
+   decorative aria-hidden icons. It had drifted onto struck-through prices,
+   input placeholders and console labels, where it was simply too faint to
+   read. tests/contrast-audit.py now reads the stylesheets and enforces this
+   rather than trusting a hand-kept list of pairings. */
+--ink-900:#17120e;
+--ink-800:#1c1712;
+--ink-body:#231d17;
+--ink-600:#5f564d;
+--ink-500:#72695f;
+--ink-400:#9f9385;
+/* --border is a decorative hairline (dividers, card edges). --border-strong is
+   the visible boundary of an interactive control, so it meets the 3:1 that
+   WCAG 1.4.11 asks of UI components. */
+--border:#e6ddd1;
+--border-strong:#9f9382;
+--bg-page:#f4f0e9;
+--surface:#ffffff;
+--surface-muted:#f0ebe2;
+--surface-ink:#231d17;
+/* CTA is espresso ink, not the accent — quieter, more premium.
+   --cta-fg and --on-brand are the text colours that sit on those fills; they
+   invert in dark mode, where the CTA becomes light. */
+--cta:#231d17;
+--cta-hover:#000000;
+--cta-fg:#ffffff;
+--on-brand:#ffffff;
+/* --surface-ink is dark in BOTH themes (footer, console sidebar, toast), so
+   the text on it must NOT invert. Using --bg-page here put near-black text on
+   a near-black panel in dark mode. */
+--on-ink:#ffffff;
+/* The rest of the voice on --surface-ink. Fixed, like --on-ink: that ground
+   is dark in both themes, so a value that inverted would vanish.
+   The footer and the console sidebar between them had white at five different
+   alphas — .82, .70, .62, .55, .50 — which is drift, not hierarchy. Three
+   levels, each with one job: --on-ink for the wordmark and hover, --on-ink-muted
+   for links at rest and body copy, --on-ink-dim for column headings and the
+   legal line. 19.5:1, 8.8:1 and 5.5:1 on --surface-ink. */
+--on-ink-muted:#b4ada6;
+--on-ink-dim:#8e867e;
+/* Hairline and hover wash for the same dark chrome. */
+--on-ink-line:rgba(255,255,255,0.12);
+--on-ink-wash:rgba(255,255,255,0.08);
+/* Where an ink band meets the page. In light mode the tonal jump from #f4f0e9
+   to #231d17 is the edge and a rule on top of it would only look like an
+   artefact. In dark mode the band (#0e0c0a) is barely darker than the page
+   (#15120f) and the footer simply dissolves, so there it earns a hairline. */
+--ink-band-edge:transparent;
+/* Status pill grounds. These were hardcoded hex, so in dark mode two of the
+   three kept a pale light-mode background and their text fell to ~2.3:1. */
+--pill-ok-bg:#e8f0ea;
+--pill-warn-bg:#f1e9e1;
+--pill-risk-bg:#f7e6e1;
+/* Form-error banner, and the wash over a thumbnail while it uploads. Both were
+   hardcoded light values, so in dark mode their text fell to ~2.5:1 and ~1.4:1. */
+--alert-error-bg:#fbf0ec;
+--alert-error-bd:#eccfc5;
+/* Amber banner: something in the cart needs adjusting, not something broken. */
+--alert-warn-bd:#e4d2bd;
+--scrim:rgba(255,255,255,0.78);
+--danger:#bf4a30;
+--danger-dark:#a03c26;
+--success:#4f7a5b;
+--success-dark:#3f6349;
+--info:#6e645a;
+--star:#a87a28;
+--focus-ring:#a5653d;
+--focus-ring-soft:#e4d3c3;
+--overlay:rgba(28,22,16,0.55);
+--overlay-strong:rgba(28,22,16,0.66);
+}
+
+/* ---------------------------------------------------------------------------
+   Dark mode. The same warm family rather than a generic slate: the greys are
+   built on the espresso hue (30°) and the accent on the clay hue (23°), so the
+   brand reads as itself with the lights off.
+
+   Applied when the OS asks for it, unless the visitor has chosen otherwise,
+   and always when they have chosen dark. Verified by tests/contrast-audit.py.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --brand-50:#3a2a1f;
+    --brand-100:#5a3f2c;
+    --brand:#d89d79;
+    --brand-dark:#e2ae8d;
+    --brand-700:#d89d79;
+
+    --ink-900:#ffffff;
+    --ink-800:#f7f4f1;
+    --ink-body:#f0ece8;
+    --ink-600:#cac2ba;
+    --ink-500:#b0a69c;
+    --ink-400:#8c8073;
+
+    --border:#342f2a;
+    --border-strong:#6f655b;
+    --bg-page:#15120f;
+    --surface:#1f1b17;
+    --surface-muted:#292521;
+    --surface-ink:#0e0c0a;
+    --ink-band-edge:#342f2a;
+
+    --cta:#f0ece8;
+    --cta-hover:#ffffff;
+    --cta-fg:#15120f;
+    --on-brand:#15120f;
+
+    --danger:#d2644b;
+    --danger-dark:#e08268;
+    --success:#5d906b;
+    --success-dark:#79ab86;
+    --info:#b0a69c;
+    --star:#d8ad57;
+    --focus-ring:#d89d79;
+    --focus-ring-soft:#5a3f2c;
+    --alert-error-bg:#33201b;
+    --alert-error-bd:#5a352c;
+    --alert-warn-bd:#5a412e;
+    --scrim:rgba(21,18,15,0.82);
+    --pill-ok-bg:#20332a;
+    --pill-warn-bg:#3a2a1f;
+    --pill-risk-bg:#3b211b;
+    --overlay:rgba(8,6,5,0.72);
+    --overlay-strong:rgba(8,6,5,0.82);
+  }
+}
+
+:root[data-theme='dark'] {
+  --brand-50:#3a2a1f;
+  --brand-100:#5a3f2c;
+  --brand:#d89d79;
+  --brand-dark:#e2ae8d;
+  --brand-700:#d89d79;
+
+  --ink-900:#ffffff;
+  --ink-800:#f7f4f1;
+  --ink-body:#f0ece8;
+  --ink-600:#cac2ba;
+  --ink-500:#b0a69c;
+  --ink-400:#8c8073;
+
+  --border:#342f2a;
+  --border-strong:#6f655b;
+  --bg-page:#15120f;
+  --surface:#1f1b17;
+  --surface-muted:#292521;
+  --surface-ink:#0e0c0a;
+  --ink-band-edge:#342f2a;
+
+  --cta:#f0ece8;
+  --cta-hover:#ffffff;
+  --cta-fg:#15120f;
+  --on-brand:#15120f;
+
+  --danger:#d2644b;
+  --danger-dark:#e08268;
+  --success:#5d906b;
+  --success-dark:#79ab86;
+  --info:#b0a69c;
+  --star:#d8ad57;
+  --focus-ring:#d89d79;
+  --focus-ring-soft:#5a3f2c;
+  --alert-error-bg:#33201b;
+  --alert-error-bd:#5a352c;
+  --alert-warn-bd:#5a412e;
+  --scrim:rgba(21,18,15,0.82);
+  --pill-ok-bg:#20332a;
+  --pill-warn-bg:#3a2a1f;
+  --pill-risk-bg:#3b211b;
+  --overlay:rgba(8,6,5,0.72);
+  --overlay-strong:rgba(8,6,5,0.82);
+}

@@ -1,0 +1,86 @@
+/* ---------------------------------------------------------------------------
+   Layout primitives. Responsive by construction — clamp() and auto-fit grids
+   do the work, so there are almost no breakpoint jumps to maintain.
+   --------------------------------------------------------------------------- */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  /* Gutters shrink smoothly on small screens instead of overflowing. */
+  padding-inline: clamp(1rem, 3vw, 2.5rem);
+}
+.container--narrow { max-width: 68rem; }
+.container--prose  { max-width: 40rem; }
+
+/* Vertical rhythm. Sections deliberately differ so the page has a cadence
+   rather than one repeated interval. */
+.section       { padding-block: clamp(3.5rem, 8vw, 6rem); }
+.section--tight{ padding-block: clamp(2.5rem, 5vw, 3.5rem); }
+.section--loose{ padding-block: clamp(4.5rem, 11vw, 8.5rem); }
+.section--surface { background: var(--surface); }
+.section--muted   { background: var(--surface-muted); }
+
+/* A heading block: eyebrow + title on the left, optional action on the right. */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+.section-head__text { display: flex; flex-direction: column; gap: var(--space-3); }
+/* One line saying why the section exists. Sits tighter to its heading
+   than the eyebrow above it, so the three read as one block. */
+.section-head__note { margin: calc(var(--space-3) * -0.5) 0 0; max-width: 42ch;
+  font-size: var(--text-sm); color: var(--ink-500); line-height: var(--leading-relaxed); }
+
+/* Product/category grids. auto-fit + minmax means the column count falls from
+   4 to 3 to 2 to 1 on its own, at whatever width the content actually needs. */
+.grid { display: grid; gap: clamp(1rem, 2.5vw, 2rem); }
+.grid--products   { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); }
+/* auto-fit, not auto-fill: four rooms left an empty fifth track, so the row
+   stopped short of the "All rooms" link it was aligned under. */
+.grid--categories { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+/* Phones get two columns, not one. Left to auto-fill, a 390px screen gave one
+   full-width card per row: with a 4:5 image that is a 450px-tall card, so the
+   eight-product section was four thousand pixels of scrolling to see eight
+   things, and the four room tiles were taller than the viewport each. Two up
+   is what every storefront does on a phone, and it is what makes a grid
+   scannable rather than a slideshow. The step is continuous — at 545px
+   auto-fill independently arrives at two as well. */
+@media (max-width: 34rem) {
+  .grid--products, .grid--categories { grid-template-columns: repeat(2, 1fr); }
+}
+/* Both consoles show exactly four stats. auto-fit wrapped them 3 + 1 at
+   middling widths, which leaves an orphan; stepping 1 -> 2 -> 4 keeps the
+   block balanced at every size. */
+.grid--stats      { grid-template-columns: 1fr; }
+@media (min-width: 34rem) { .grid--stats { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 64rem) { .grid--stats { grid-template-columns: repeat(4, 1fr); } }
+
+/* Two-column page layouts (product detail, checkout, account). Single column
+   below the breakpoint — these genuinely need a hard switch, not a squeeze. */
+.split { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+@media (min-width: 60rem) {
+  .split--even    { grid-template-columns: 1fr 1fr; }
+  .split--content { grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr); }
+  .split--media   { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+}
+
+.stack { display: flex; flex-direction: column; gap: var(--space-4); }
+.stack--sm { gap: var(--space-2); }
+.stack--lg { gap: var(--space-6); }
+.row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.row--between { justify-content: space-between; }
+.row--end { justify-content: flex-end; }
+.spacer { flex: 1; }
+
+/* Horizontal scroll container for tables on small screens. */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.nowrap { white-space: nowrap; }
+.truncate { max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.list-reset { list-style: none; margin: 0; padding: 0; }

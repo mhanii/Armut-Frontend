@@ -1,0 +1,270 @@
+/* ---------------------------------------------------------------------------
+   Vendor and admin consoles. Same shell for both — one set of rules rather
+   than two near-identical copies.
+   --------------------------------------------------------------------------- */
+
+.console { display: flex; min-height: 100vh; background: var(--bg-page); }
+
+/* Below 60rem the sidebar becomes a horizontal tab rail across the top, so the
+   consoles are usable on a phone. A fixed 244px column left roughly 130px for
+   content on a 375px screen. */
+.console__side {
+  flex-shrink: 0;
+  background: var(--surface-ink);
+  color: var(--on-ink);
+  display: flex;
+  flex-direction: column;
+}
+.console__brand { padding: var(--space-5); border-bottom: 1px solid var(--on-ink-line); }
+.console__brand-row { display: flex; align-items: baseline; gap: var(--space-2); }
+.console__wordmark { font-family: var(--font-display); font-size: var(--text-xl); }
+.console__badge {
+  font-size: 0.625rem; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  color: var(--brand);
+}
+.console__who { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--on-ink-muted); line-height: var(--leading-snug); }
+
+/* Same treatment as the storefront rail, and now the same mechanism: the fade
+   follows the real scroll position, so a tab at the end of the strip can be
+   scrolled fully into view instead of stopping under a gradient. */
+.console__nav {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  display: flex; gap: var(--space-1); padding: var(--space-3);
+  overflow-x: auto; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+}
+.console__nav[data-fade~="start"] { --fade-start: 1.5rem; }
+.console__nav[data-fade~="end"]   { --fade-end: 2.5rem; }
+.console__nav::-webkit-scrollbar { display: none; }
+.console__link {
+  display: flex; align-items: center; gap: var(--space-3);
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm); font-weight: var(--weight-medium);
+  color: var(--on-ink-muted);
+  background: transparent; border: none; border-radius: var(--radius-sm);
+  cursor: pointer; text-align: left; white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.console__link:hover { background: var(--on-ink-wash); color: var(--on-ink); }
+/* The active item was a solid clay block — the heaviest mark on the page,
+   spent on the one thing the reader already knows. A quiet lift plus a clay
+   edge says the same thing without shouting. */
+.console__link { position: relative; }
+.console__link[aria-current="page"] { background: var(--on-ink-wash); color: var(--on-ink); }
+.console__link[aria-current="page"]::before {
+  content: ''; position: absolute; background: var(--brand); border-radius: 1px;
+}
+/* Rail across the top on narrow screens, column on wide — the indicator
+   follows the edge the eye reads as "current". */
+.console__link[aria-current="page"]::before {
+  left: var(--space-3); right: var(--space-3); bottom: 0; height: 2px;
+}
+@media (min-width: 60rem) {
+  .console__link[aria-current="page"]::before {
+    left: 0; right: auto; top: 50%; bottom: auto;
+    width: 2px; height: 1.25rem; transform: translateY(-50%);
+  }
+}
+.console__foot { padding: var(--space-3); border-top: 1px solid rgba(255,255,255,0.12); }
+
+.console__main { flex: 1; min-width: 0; padding: clamp(1.5rem, 4vw, 2.5rem); }
+
+@media (min-width: 60rem) {
+  .console__side { width: 15rem; min-height: 100vh; }
+  .console__nav { flex-direction: column; flex: 1; padding: var(--space-4) var(--space-3); overflow-x: visible; }
+  .console__link { width: 100%; }
+}
+@media (max-width: 59.99rem) {
+  .console { flex-direction: column; }
+  .console__brand { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+  .console__brand .console__who { margin: 0; }
+  .console__foot { border-top: none; padding: 0 var(--space-3) var(--space-3); }
+}
+
+/* ---- console furniture ---------------------------------------------------- */
+
+.console__head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--space-5); flex-wrap: wrap;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-5);
+}
+.stat__label { margin: 0 0 var(--space-2); font-size: 0.6875rem; font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--ink-500); }
+.stat__value { margin: 0; font-size: var(--text-3xl); font-weight: var(--weight-normal); font-family: var(--font-display); color: var(--ink-body); font-variant-numeric: tabular-nums; line-height: 1; }
+.stat__note { margin: var(--space-2) 0 0; font-size: var(--text-sm); color: var(--ink-500); }
+
+/* Tables need a scroll container on narrow screens rather than squashing. */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.table-wrap .table { min-width: 44rem; }
+
+.empty { padding: clamp(2.5rem, 6vw, 4rem); text-align: center; color: var(--ink-500); }
+
+.stat--action {
+  text-align: left; width: 100%; cursor: pointer; font: inherit;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.stat--action:hover { border-color: var(--border-strong); }
+.stat--action:hover .stat__go { transform: translateX(3px); }
+.stat__go {
+  display: inline-block; margin-left: var(--space-2);
+  color: var(--brand-700);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.thing { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.thing__img { width: 2.5rem; height: 2.5rem; flex-shrink: 0; object-fit: cover; border-radius: var(--radius-sm); background: var(--surface-muted); }
+.thing__img--empty { display: block; border: 1px solid var(--border); }
+.thing__name { display: block; font-weight: var(--weight-medium); color: var(--ink-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Sticky rather than fixed: it inherits the main column's width, so it never
+   has to know about the sidebar, and it sits at the end of the content so it
+   scrolls away naturally once the form is behind you. */
+.savebar {
+  position: sticky; bottom: var(--space-4); z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-ink); color: var(--on-ink);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 24px var(--overlay);
+}
+.savebar__text { font-size: var(--text-sm); color: var(--on-ink-muted); }
+
+/* ---- console auth --------------------------------------------------------- */
+
+.console-auth {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-6);
+  background: var(--bg-page);
+}
+.console-auth__inner { width: 100%; max-width: 25rem; }
+.console-auth__brand { text-align: center; margin-bottom: var(--space-8); }
+.console-auth__wordmark { font-family: var(--font-display); font-size: var(--text-4xl); color: var(--ink-body); }
+
+/* ---- store preview -------------------------------------------------------- */
+
+.preview { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+/* A flat brand band, not a gradient. Gradients are the fastest way to make a
+   considered layout look like a template. */
+.preview__band { height: 5rem; background: var(--brand-dark); }
+.preview__body { padding: var(--space-5); }
+
+/* ---- content editor ------------------------------------------------------- */
+
+.row-card {
+  display: flex; gap: var(--space-4); align-items: flex-start;
+  padding: var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.row-card__order { display: flex; flex-direction: column; gap: var(--space-1); align-items: center; padding-top: 2px; }
+.row-card__fields { flex: 1; min-width: 0; display: grid; gap: var(--space-4); }
+@media (min-width: 48rem) { .row-card__fields--pair { grid-template-columns: 1fr 1fr; } }
+.row-card__fields--wide { grid-template-columns: 1fr; }
+@media (min-width: 48rem) { .row-card__fields--wide { grid-template-columns: 14rem 1fr; } }
+.row-card__span { grid-column: 1 / -1; }
+
+.move-btn {
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-muted); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer; color: var(--ink-500);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.move-btn:hover:not([disabled]) { color: var(--ink-body); }
+.move-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+.row-card__index { font-size: var(--text-xs); color: var(--ink-500); font-variant-numeric: tabular-nums; }
+
+.uploader { display: flex; gap: var(--space-3); align-items: flex-start; }
+.uploader__drop {
+  position: relative;
+  width: 6rem; flex-shrink: 0; padding: 0;
+  overflow: hidden; cursor: pointer;
+  background: var(--surface-muted);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--ink-500);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.uploader__drop:hover { border-color: var(--border-strong); }
+.uploader__drop img { width: 100%; height: 100%; object-fit: cover; }
+.uploader__busy {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--scrim);
+  font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--ink-600);
+}
+/* align-items defaults to stretch in a flex column, which was pulling the
+   "Replace image" button across the full width beside a 6rem thumbnail. */
+.uploader__side { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.uploader__side .field__input { width: 100%; }
+
+/* ---- colour chips + photo dropzone (product form) ------------------------- */
+
+.chip-list { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  font-size: var(--text-sm); color: var(--ink-body);
+  background: var(--surface-muted); border-radius: var(--radius-full);
+}
+.chip__dot { width: 0.875rem; height: 0.875rem; border-radius: var(--radius-full); border: 1px solid var(--border-strong); flex-shrink: 0; }
+.chip__remove {
+  display: inline-flex; padding: 3px;
+  background: var(--border); color: var(--ink-600);
+  border: none; border-radius: var(--radius-full); cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.chip__remove:hover { background: var(--border-strong); }
+
+.colour-add { display: flex; align-items: flex-end; gap: var(--space-2); margin-bottom: var(--space-4); }
+.colour-add__name { flex: 1; min-width: 0; }
+.colour-add__swatch {
+  width: 2.625rem; height: 2.625rem; padding: 2px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); cursor: pointer;
+}
+
+.dropzone {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.photo-row {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2);
+  background: var(--surface-muted); border-radius: var(--radius-sm);
+}
+.photo-row img { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--radius-sm); }
+
+/* ---- filter chips --------------------------------------------------------- */
+
+.filters { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.filter {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 0.4375rem 0.875rem;
+  font-size: var(--text-sm); font-family: var(--font-sans);
+  color: var(--ink-600); background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+.filter:hover { border-color: var(--border-strong); color: var(--ink-body); }
+.filter[aria-pressed="true"] { background: var(--surface-ink); border-color: var(--surface-ink); color: var(--on-ink); }
+.filter__count { font-variant-numeric: tabular-nums; opacity: 0.65; }
+
+.console__foot--row { display: flex; align-items: center; gap: var(--space-2); }
+.console__foot--row .icon-btn { color: var(--on-ink-muted); }
+.console__foot--row .icon-btn:hover { background: var(--on-ink-wash); color: var(--on-ink); }
